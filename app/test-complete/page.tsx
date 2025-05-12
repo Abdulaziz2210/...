@@ -16,29 +16,76 @@ export default function TestCompletePage() {
 
     if (!task1Answer && !task2Answer) {
       router.push("/")
+      return
     }
 
-    // Clear test data
-    const clearTestData = () => {
+    // Send results to Telegram
+    sendResultsToTelegram(task1Answer || "", task2Answer || "")
+
+    // Clear test data after 5 seconds
+    const timer = setTimeout(() => {
       localStorage.removeItem("writingTask1Answer")
       localStorage.removeItem("writingTask2Answer")
-      localStorage.removeItem("ieltsTestState")
+      localStorage.removeItem("writingTask1TopicIndex")
+      localStorage.removeItem("writingTask2TopicIndex")
       sessionStorage.removeItem("isLoggedIn")
-    }
-
-    // Clear data after 5 seconds
-    const timer = setTimeout(() => {
-      clearTestData()
     }, 5000)
 
     return () => clearTimeout(timer)
   }, [router])
 
+  const sendResultsToTelegram = async (task1Answer: string, task2Answer: string) => {
+    try {
+      const studentName = sessionStorage.getItem("currentUser") || "Unknown Student"
+
+      // Calculate word counts
+      const task1Words = task1Answer.split(/\s+/).filter((word) => word.length > 0).length
+      const task2Words = task2Answer.split(/\s+/).filter((word) => word.length > 0).length
+
+      const message = `
+📊 *IELTS Test Results*
+
+👤 *Student*: ${studentName}
+
+✍️ *Writing Task 1*:
+Words: ${task1Words}
+Content: "${task1Answer.substring(0, 200)}${task1Answer.length > 200 ? "..." : ""}"
+
+✍️ *Writing Task 2*:
+Words: ${task2Words}
+Content: "${task2Answer.substring(0, 200)}${task2Answer.length > 200 ? "..." : ""}"
+
+⏰ *Completed*: ${new Date().toLocaleString()}
+      `
+
+      // Log results to console as a reliable fallback
+      console.log("========== TEST RESULTS ==========")
+      console.log(message)
+      console.log("==================================")
+
+      // Send to API endpoint
+      const response = await fetch("/api/send-telegram", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }),
+      })
+
+      if (!response.ok) {
+        console.error("Failed to send results to Telegram")
+      }
+    } catch (error) {
+      console.error("Error sending results:", error)
+    }
+  }
+
   const handleReturnHome = () => {
     // Clear any remaining test data
     localStorage.removeItem("writingTask1Answer")
     localStorage.removeItem("writingTask2Answer")
-    localStorage.removeItem("ieltsTestState")
+    localStorage.removeItem("writingTask1TopicIndex")
+    localStorage.removeItem("writingTask2TopicIndex")
     sessionStorage.removeItem("isLoggedIn")
 
     router.push("/")
@@ -63,7 +110,7 @@ export default function TestCompletePage() {
           </p>
         </CardContent>
         <CardFooter>
-          <Button onClick={() => router.push("/")} className="w-full">
+          <Button onClick={handleReturnHome} className="w-full">
             Go to Home
           </Button>
         </CardFooter>

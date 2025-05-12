@@ -1,21 +1,22 @@
 "\"use client"
-
-import type React from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Pencil } from "lucide-react"
-import { useState } from "react"
-import DrawingCanvas from "./drawing-canvas"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 interface NavigationButtonsProps {
   previousUrl?: string
   nextUrl?: string
-  showDrawing?: boolean
+  previousLabel?: string
+  nextLabel?: string
 }
 
-const NavigationButtons: React.FC<NavigationButtonsProps> = ({ previousUrl, nextUrl, showDrawing = true }) => {
+export default function NavigationButtons({
+  previousUrl,
+  nextUrl,
+  previousLabel = "Previous",
+  nextLabel = "Next",
+}: NavigationButtonsProps) {
   const router = useRouter()
-  const [isDrawingOpen, setIsDrawingOpen] = useState(false)
 
   return (
     <div className="flex justify-between items-center w-full mt-6 mb-4">
@@ -23,30 +24,19 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({ previousUrl, next
         {previousUrl && (
           <Button variant="outline" onClick={() => router.push(previousUrl)} className="flex items-center gap-2">
             <ChevronLeft className="h-4 w-4" />
-            Previous
+            {previousLabel}
           </Button>
         )}
       </div>
 
-      <div className="flex gap-2">
-        {showDrawing && (
-          <Button variant="outline" onClick={() => setIsDrawingOpen(true)} className="flex items-center gap-2">
-            <Pencil className="h-4 w-4" />
-            Draw
-          </Button>
-        )}
-
+      <div>
         {nextUrl && (
           <Button onClick={() => router.push(nextUrl)} className="flex items-center gap-2">
-            Next
+            {nextLabel}
             <ChevronRight className="h-4 w-4" />
           </Button>
         )}
       </div>
-
-      {isDrawingOpen && <DrawingCanvas isOpen={isDrawingOpen} onClose={() => setIsDrawingOpen(false)} />}
     </div>
   )
 }
-
-export default NavigationButtons

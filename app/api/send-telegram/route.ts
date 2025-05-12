@@ -18,7 +18,6 @@ export async function POST(request: Request) {
     }
 
     // Store results locally in a simple way (this will be lost on server restart)
-    // In a real app, you would use a database
     if (typeof global.testResults === "undefined") {
       global.testResults = []
     }
@@ -27,12 +26,12 @@ export async function POST(request: Request) {
       data: message,
     })
 
-    // Try to send to Telegram, but don't fail if it doesn't work
+    // Try to send to Telegram
     try {
       // Telegram configuration
       const token = "7541550330:AAHYAD-TP6fGLLI2oahVCWw0xzNrT8RbTPE"
 
-      // First, verify if the bot token is valid by checking getMe endpoint
+      // First, verify if the bot token is valid
       const verifyResponse = await fetch(`https://api.telegram.org/bot${token}/getMe`)
       const verifyData = await verifyResponse.json()
 
@@ -40,7 +39,6 @@ export async function POST(request: Request) {
         throw new Error(`Invalid bot token: ${verifyData.description}`)
       }
 
-      // Bot token is valid, now try to send the message
       // Try different chat ID formats
       const chatIds = [
         "@dreamzone_ielts_results", // Channel username
@@ -87,7 +85,6 @@ export async function POST(request: Request) {
         success: true,
         warning: "Results logged to console due to Telegram API error",
         error: telegramError instanceof Error ? telegramError.message : String(telegramError),
-        note: "Test results have been saved locally and are available in the console",
       })
     }
   } catch (error) {
